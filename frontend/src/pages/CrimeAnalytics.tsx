@@ -49,6 +49,26 @@ export default function CrimeAnalytics() {
   const mode = useQuery({ queryKey: ["a-mode", f], queryFn: () => getCrimeByComplaintMode(f) });
 
   const monthData = (month.data ?? []).map((r) => ({ ...r, name: MONTHS[(r.month - 1) % 12] ?? String(r.month) }));
+
+  const rawStageData = stage.data ?? [];
+  const sortedStageData = [...rawStageData].sort((a, b) => b.count - a.count);
+  const topStages = sortedStageData.slice(0, 5);
+  const otherStagesCount = sortedStageData.slice(5).reduce((sum, item) => sum + item.count, 0);
+  const formatStageName = (s: string) => {
+    if (!s) return "";
+    if (s === "Others") return "Others";
+    return s
+      .split("_")
+      .map((w) => w.charAt(0).toUpperCase() + w.slice(1).toLowerCase())
+      .join(" ");
+  };
+  const stageData = (
+    otherStagesCount > 0 ? [...topStages, { fir_stage: "Others", count: otherStagesCount }] : topStages
+  ).map((item) => ({
+    ...item,
+    formatted_stage: formatStageName(item.fir_stage),
+  }));
+
   const demoData = demo.data
     ? [
         { name: "Male", value: demo.data.male_victims },
@@ -146,14 +166,14 @@ export default function CrimeAnalytics() {
           <ResponsiveContainer>
             <PieChart>
               <Pie
-                data={stage.data ?? []}
+                data={stageData}
                 dataKey="count"
-                nameKey="fir_stage"
+                nameKey="formatted_stage"
                 cx="50%" cy="50%"
                 outerRadius={95}
                 label={{ fontSize: 10 }}
               >
-                {(stage.data ?? []).map((_, i) => (
+                {stageData.map((_, i) => (
                   <Cell key={i} fill={PALETTE[i % PALETTE.length]} />
                 ))}
               </Pie>
