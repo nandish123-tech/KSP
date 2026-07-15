@@ -62,17 +62,49 @@ Try one of the suggested prompts below, or type your own query.`,
 
 export default function AICrimeAssistant() {
   const filters = useFilters();
-  const [sessions, setSessions] = useState<ChatSession[]>([
-    { id: "s1", title: "Show robbery cases in Bengaluru last month", pinned: true },
-    { id: "s2", title: "Cybercrime patterns Mysuru", pinned: false },
-  ]);
-  const [messages, setMessages] = useState<Message[]>([INITIAL_MESSAGE]);
+  const [sessions, setSessions] = useState<ChatSession[]>(() => {
+    try {
+      const saved = localStorage.getItem("ksp_chat_sessions");
+      if (saved) return JSON.parse(saved);
+    } catch (e) {
+      console.error("Failed to load sessions from localStorage", e);
+    }
+    return [
+      { id: "s1", title: "Show robbery cases in Bengaluru last month", pinned: true },
+      { id: "s2", title: "Cybercrime patterns Mysuru", pinned: false },
+    ];
+  });
+  const [messages, setMessages] = useState<Message[]>(() => {
+    try {
+      const saved = localStorage.getItem("ksp_chat_messages");
+      if (saved) return JSON.parse(saved);
+    } catch (e) {
+      console.error("Failed to load messages from localStorage", e);
+    }
+    return [INITIAL_MESSAGE];
+  });
   const [input, setInput] = useState("");
   const [loading, setLoading] = useState(false);
   const [searchTerm, setSearchTerm] = useState("");
   const bottomRef = useRef<HTMLDivElement>(null);
   const abortRef = useRef<AbortController | null>(null);
   const textareaRef = useRef<HTMLTextAreaElement>(null);
+
+  useEffect(() => {
+    try {
+      localStorage.setItem("ksp_chat_sessions", JSON.stringify(sessions));
+    } catch (e) {
+      console.error("Failed to save sessions to localStorage", e);
+    }
+  }, [sessions]);
+
+  useEffect(() => {
+    try {
+      localStorage.setItem("ksp_chat_messages", JSON.stringify(messages));
+    } catch (e) {
+      console.error("Failed to save messages to localStorage", e);
+    }
+  }, [messages]);
 
   useEffect(() => {
     bottomRef.current?.scrollIntoView({ behavior: "smooth" });
