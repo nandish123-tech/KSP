@@ -19,7 +19,7 @@ import {
 import ReactMarkdown from "react-markdown";
 import remarkGfm from "remark-gfm";
 import { useFilters } from "../lib/filters-store";
-import type { ChatSession } from "../types/ksp";
+import type { ChatSession } from "../types";
 import { ResponseCard } from "../components/shared/ResponseCards";
 import { apiUrl } from "../lib/api";
 
@@ -62,27 +62,54 @@ Try one of the suggested prompts below, or type your own query.`,
 
 export default function AICrimeAssistant() {
   const filters = useFilters();
+  const [activeSessionId, setActiveSessionId] = useState<string>(() => {
+    return localStorage.getItem("ksp_active_session_id") || "s1";
+  });
+
   const [sessions, setSessions] = useState<ChatSession[]>(() => {
     try {
       const saved = localStorage.getItem("ksp_chat_sessions");
-      if (saved) return JSON.parse(saved);
+      if (saved) {
+        const parsed = JSON.parse(saved);
+        if (parsed && parsed.length > 0) return parsed;
+      }
     } catch (e) {
       console.error("Failed to load sessions from localStorage", e);
     }
     return [
-      { id: "s1", title: "Show robbery cases in Bengaluru last month", pinned: true },
-      { id: "s2", title: "Cybercrime patterns Mysuru", pinned: false },
+      { id: "s1", title: "Show robbery cases in Bengaluru last month", pinned: true, messages: [INITIAL_MESSAGE] },
+      { id: "s2", title: "Cybercrime patterns Mysuru", pinned: false, messages: [INITIAL_MESSAGE] },
     ];
   });
-  const [messages, setMessages] = useState<Message[]>(() => {
-    try {
-      const saved = localStorage.getItem("ksp_chat_messages");
-      if (saved) return JSON.parse(saved);
-    } catch (e) {
-      console.error("Failed to load messages from localStorage", e);
-    }
-    return [INITIAL_MESSAGE];
-  });
+
+  const activeSession = sessions.find((s) => s.id === activeSessionId) || sessions[0] || { id: "s1", title: "New Case Thread", pinned: false, messages: [INITIAL_MESSAGE] };
+  const messages = activeSession.messages || [INITIAL_MESSAGE];
+
+  const setMessages = useCallback(
+    (newMessages: Message[] | ((prev: Message[]) => Message[])) => {
+      setSessions((prevSessions) => {
+        let found = false;
+        const next = prevSessions.map((s) => {
+          if (s.id === activeSessionId) {
+            found = true;
+            const updatedMsgs = typeof newMessages === "function" ? newMessages(s.messages || [INITIAL_MESSAGE]) : newMessages;
+            return { ...s, messages: updatedMsgs };
+          }
+          return s;
+        });
+        if (!found) {
+          const updatedMsgs = typeof newMessages === "function" ? newMessages([INITIAL_MESSAGE]) : newMessages;
+          return [
+            { id: activeSessionId, title: "New Case Thread", pinned: false, messages: updatedMsgs },
+            ...prevSessions
+          ];
+        }
+        return next;
+      });
+    },
+    [activeSessionId]
+  );
+
   const [input, setInput] = useState("");
   const [loading, setLoading] = useState(false);
   const [searchTerm, setSearchTerm] = useState("");
@@ -91,20 +118,16 @@ export default function AICrimeAssistant() {
   const textareaRef = useRef<HTMLTextAreaElement>(null);
 
   useEffect(() => {
+    localStorage.setItem("ksp_active_session_id", activeSessionId);
+  }, [activeSessionId]);
+
+  useEffect(() => {
     try {
       localStorage.setItem("ksp_chat_sessions", JSON.stringify(sessions));
     } catch (e) {
       console.error("Failed to save sessions to localStorage", e);
     }
   }, [sessions]);
-
-  useEffect(() => {
-    try {
-      localStorage.setItem("ksp_chat_messages", JSON.stringify(messages));
-    } catch (e) {
-      console.error("Failed to save messages to localStorage", e);
-    }
-  }, [messages]);
 
   useEffect(() => {
     bottomRef.current?.scrollIntoView({ behavior: "smooth" });
@@ -153,14 +176,16 @@ export default function AICrimeAssistant() {
 
         setMessages((prev) => [...prev, responseMsg]);
 
-        // Save to sessions if meaningful
-        if (sessions.length < 20 && v.length > 10) {
-          const shortTitle = v.length > 48 ? v.slice(0, 48) + "…" : v;
-          setSessions((prev) => [
-            { id: `s_${Date.now()}`, title: shortTitle, pinned: false },
-            ...prev.slice(0, 18),
-          ]);
-        }
+        // Update session title dynamically if it's currently a default
+        setSessions((prevSessions) => {
+          return prevSessions.map((s) => {
+            if (s.id === activeSessionId && (s.title === "New Case Thread" || s.title.startsWith("New Chat") || s.title === "Show robbery cases in Bengaluru last month" || s.title === "Cybercrime patterns Mysuru")) {
+              const shortTitle = v.length > 48 ? v.slice(0, 48) + "…" : v;
+              return { ...s, title: shortTitle };
+            }
+            return s;
+          });
+        });
       } catch (err: any) {
         console.error(err);
         setMessages((prev) => [
@@ -185,6 +210,20 @@ export default function AICrimeAssistant() {
     setLoading(false);
   };
 
+  const launchNewSession = () => {
+    abortRef.current?.abort();
+    const newId = `s_${Date.now()}`;
+    const newSession: ChatSession = {
+      id: newId,
+      title: "New Case Thread",
+      pinned: false,
+      messages: [INITIAL_MESSAGE]
+    };
+    setSessions((prev) => [newSession, ...prev]);
+    setActiveSessionId(newId);
+    setLoading(false);
+  };
+
   return (
     <div className="flex h-[calc(100vh-3.5rem)] overflow-hidden" style={{ background: "#f8fafc" }}>
 
@@ -198,8 +237,8 @@ export default function AICrimeAssistant() {
             <Cpu className="h-3 w-3 text-[#41C9E2]" />
             <span className="text-[9px] uppercase tracking-widest text-slate-500 font-mono">Case Threads</span>
           </div>
-          <button
-            onClick={clearChat}
+           <button
+            onClick={launchNewSession}
             className="w-full py-2 px-3 rounded-xl text-xs font-bold flex items-center justify-center gap-2 transition-all"
             style={{
               background: "linear-gradient(135deg, rgba(0,141,218,0.15), rgba(65,201,226,0.1))",
@@ -233,16 +272,27 @@ export default function AICrimeAssistant() {
               <div
                 key={s.id}
                 className="group flex items-center justify-between p-2.5 rounded-xl cursor-pointer transition-all"
-                style={{ border: "1px solid transparent" }}
+                style={{
+                  border: "1px solid transparent",
+                  background: s.id === activeSessionId ? "rgba(0,141,218,0.15)" : "transparent",
+                  borderColor: s.id === activeSessionId ? "rgba(0,141,218,0.3)" : "transparent"
+                }}
                 onMouseEnter={(e) => {
-                  (e.currentTarget as HTMLDivElement).style.background = "rgba(30,62,98,0.5)";
-                  (e.currentTarget as HTMLDivElement).style.borderColor = "rgba(0,141,218,0.2)";
+                  if (s.id !== activeSessionId) {
+                    (e.currentTarget as HTMLDivElement).style.background = "rgba(30,62,98,0.5)";
+                    (e.currentTarget as HTMLDivElement).style.borderColor = "rgba(0,141,218,0.2)";
+                  }
                 }}
                 onMouseLeave={(e) => {
-                  (e.currentTarget as HTMLDivElement).style.background = "transparent";
-                  (e.currentTarget as HTMLDivElement).style.borderColor = "transparent";
+                  if (s.id !== activeSessionId) {
+                    (e.currentTarget as HTMLDivElement).style.background = "transparent";
+                    (e.currentTarget as HTMLDivElement).style.borderColor = "transparent";
+                  }
                 }}
-                onClick={() => handleSend(s.title)}
+                onClick={() => {
+                  abortRef.current?.abort();
+                  setActiveSessionId(s.id);
+                }}
               >
                 <div className="flex items-center gap-2 overflow-hidden">
                   <MessageSquare className="h-3.5 w-3.5 text-slate-500 flex-shrink-0" />
@@ -257,7 +307,16 @@ export default function AICrimeAssistant() {
                   </button>
                   <button
                     className="text-slate-500 hover:text-red-400 transition-colors"
-                    onClick={(e) => { e.stopPropagation(); setSessions((prev) => prev.filter((x) => x.id !== s.id)); }}
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      setSessions((prev) => {
+                        const next = prev.filter((x) => x.id !== s.id);
+                        if (activeSessionId === s.id && next.length > 0) {
+                          setActiveSessionId(next[0].id);
+                        }
+                        return next;
+                      });
+                    }}
                   >
                     <Trash2 className="h-3 w-3" />
                   </button>
@@ -298,7 +357,7 @@ export default function AICrimeAssistant() {
             </div>
           </div>
           <button
-            onClick={clearChat}
+            onClick={launchNewSession}
             className="flex items-center gap-1.5 text-xs text-slate-400 hover:text-slate-700 px-3 py-1.5 rounded-lg hover:bg-slate-100 transition-all font-mono"
           >
             <RefreshCcw className="h-3.5 w-3.5" /> New Chat
