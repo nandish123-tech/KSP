@@ -116,6 +116,9 @@ export default function AICrimeAssistant() {
   const [input, setInput] = useState("");
   const [loading, setLoading] = useState(false);
   const [searchTerm, setSearchTerm] = useState("");
+  const [isListening, setIsListening] = useState(false);
+  const [listeningLang, setListeningLang] = useState<"kn-IN" | "en-IN">("kn-IN");
+  const recognitionRef = useRef<any>(null);
   const bottomRef = useRef<HTMLDivElement>(null);
   const abortRef = useRef<AbortController | null>(null);
   const textareaRef = useRef<HTMLTextAreaElement>(null);
@@ -619,6 +622,54 @@ export default function AICrimeAssistant() {
     printWindow.document.close();
   };
 
+  const toggleListening = () => {
+    if (isListening) {
+      recognitionRef.current?.stop();
+      setIsListening(false);
+      return;
+    }
+
+    const SpeechRecognition = (window as any).SpeechRecognition || (window as any).webkitSpeechRecognition;
+    if (!SpeechRecognition) {
+      alert("Web Speech API is not supported in this browser. Please use Chrome, Edge, or Safari.");
+      return;
+    }
+
+    const rec = new SpeechRecognition();
+    rec.continuous = false;
+    rec.interimResults = false;
+    rec.lang = listeningLang;
+
+    rec.onstart = () => {
+      setIsListening(true);
+    };
+
+    rec.onresult = (e: any) => {
+      const result = e.results[0][0].transcript;
+      if (result) {
+        setInput((prev) => (prev ? prev + " " + result : result));
+      }
+    };
+
+    rec.onerror = (e: any) => {
+      console.error("Speech recognition error:", e);
+      setIsListening(false);
+    };
+
+    rec.onend = () => {
+      setIsListening(false);
+    };
+
+    recognitionRef.current = rec;
+    rec.start();
+  };
+
+  useEffect(() => {
+    return () => {
+      recognitionRef.current?.stop();
+    };
+  }, []);
+
   return (
     <div className="flex h-[calc(100vh-3.5rem)] overflow-hidden" style={{ background: "#f8fafc" }}>
 
@@ -865,13 +916,32 @@ export default function AICrimeAssistant() {
               }}
               className="w-full resize-none bg-transparent p-3 text-sm focus:outline-none text-slate-800 pr-28 font-mono"
             />
-            <div className="absolute right-3 bottom-3 flex items-center gap-1.5">
+            <div className="absolute right-3 bottom-3 flex items-center gap-2">
               <button type="button" title="Attach" className="p-1.5 text-slate-400 hover:text-slate-600 rounded-lg hover:bg-slate-100 transition-all">
                 <Paperclip className="h-4 w-4" />
               </button>
-              <button type="button" title="Voice" className="p-1.5 text-slate-400 hover:text-slate-600 rounded-lg hover:bg-slate-100 transition-all">
-                <Mic className="h-4 w-4" />
-              </button>
+              <div className="flex items-center gap-1 border border-slate-200 rounded-lg p-0.5 bg-slate-50/50">
+                <button
+                  type="button"
+                  onClick={() => setListeningLang((prev) => prev === "kn-IN" ? "en-IN" : "kn-IN")}
+                  className="px-1.5 py-1 text-[9px] font-extrabold font-mono rounded bg-white border border-slate-200 text-[#008DDA] transition-all hover:bg-slate-50 active:scale-95"
+                  title="Toggle Voice Input Language (Kannada / English)"
+                >
+                  {listeningLang === "kn-IN" ? "KN" : "EN"}
+                </button>
+                <button
+                  type="button"
+                  onClick={toggleListening}
+                  title={`Voice Input (${listeningLang === "kn-IN" ? "Kannada" : "English"})`}
+                  className={`p-1.5 rounded-lg transition-all ${
+                    isListening
+                      ? "text-red-500 bg-red-50 border border-red-200 animate-pulse"
+                      : "text-slate-400 hover:text-slate-600 hover:bg-slate-100"
+                  }`}
+                >
+                  <Mic className="h-4 w-4" />
+                </button>
+              </div>
               <button
                 onClick={() => handleSend(input)}
                 disabled={!input.trim() || loading}
