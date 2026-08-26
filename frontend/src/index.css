@@ -1,4 +1,4 @@
-@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500;700&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500;700&family=Cinzel:wght@500;600;700&display=swap');
 
 @tailwind base;
 @tailwind components;
@@ -66,4 +66,250 @@
   ::-webkit-scrollbar-thumb {
     @apply bg-slate-300 rounded-full hover:bg-slate-400;
   }
+}
+/* ============================================================
+   KSP Duty Terminal Theme (ported from login_page-main)
+   Navy-deep base · brass-gold accents · animated duty backdrop
+   ============================================================ */
+:root {
+  --duty-navy-deep: oklch(0.13 0.028 258);
+  --duty-navy-plate: oklch(0.2 0.03 258 / 78%);
+  --duty-gold: oklch(0.82 0.13 86);
+  --duty-gold-soft: oklch(0.9 0.07 92);
+  --duty-border: oklch(0.78 0.128 84 / 22%);
+  --gradient-brass: linear-gradient(
+    135deg,
+    oklch(0.94 0.06 95) 0%,
+    oklch(0.82 0.13 86) 38%,
+    oklch(0.62 0.1 74) 72%,
+    oklch(0.88 0.09 92) 100%
+  );
+  --shadow-plate: 0 40px 90px -30px oklch(0.05 0.02 258 / 85%),
+    inset 0 1px 0 oklch(1 0 0 / 12%);
+  --font-display-family: "Cinzel", ui-serif, Georgia, serif;
+}
+
+.font-display {
+  font-family: var(--font-display-family);
+  letter-spacing: 0.02em;
+}
+
+.duty-surface {
+  background:
+    radial-gradient(120% 90% at 50% -10%, oklch(0.3 0.05 258) 0%, transparent 60%),
+    linear-gradient(180deg, oklch(0.17 0.03 258) 0%, var(--duty-navy-deep) 100%);
+  background-attachment: fixed;
+}
+
+.terminal-panel {
+  background: color-mix(in oklab, oklch(0.17 0.03 258) 75%, transparent);
+  backdrop-filter: blur(32px) saturate(150%);
+  border: 1px solid color-mix(in oklab, var(--duty-gold) 40%, transparent);
+  box-shadow: 0 20px 60px -10px color-mix(in oklab, var(--duty-gold) 15%, transparent), var(--shadow-plate);
+  border-radius: 1rem;
+  overflow: hidden;
+}
+
+.duty-architecture {
+  pointer-events: none;
+  background-image:
+    linear-gradient(var(--duty-border) 1px, transparent 1px),
+    linear-gradient(90deg, var(--duty-border) 1px, transparent 1px);
+  background-size: 72px 72px;
+  opacity: 0.14;
+  mask-image: linear-gradient(to bottom, transparent, black 32%, black 80%, transparent);
+}
+
+.duty-light {
+  pointer-events: none;
+  background:
+    radial-gradient(circle at 50% 24%, color-mix(in oklab, var(--duty-gold) 16%, transparent), transparent 30%),
+    linear-gradient(90deg, transparent 45%, color-mix(in oklab, oklch(1 0 0) 12%, transparent) 70%, transparent);
+}
+
+.duty-vignette {
+  pointer-events: none;
+  box-shadow: inset 0 0 180px 40px color-mix(in oklab, var(--duty-navy-deep) 75%, transparent);
+  background: linear-gradient(to top, color-mix(in oklab, var(--duty-navy-deep) 72%, transparent), transparent 30%);
+}
+
+.soudha-grade {
+  pointer-events: none;
+  background:
+    linear-gradient(
+      180deg,
+      color-mix(in oklab, var(--duty-navy-deep) 60%, transparent) 0%,
+      color-mix(in oklab, var(--duty-navy-deep) 25%, transparent) 38%,
+      color-mix(in oklab, var(--duty-navy-deep) 90%, transparent) 100%
+    ),
+    radial-gradient(
+      75% 60% at 50% 34%,
+      color-mix(in oklab, var(--duty-gold) 18%, transparent),
+      transparent 75%
+    );
+}
+
+.officer-canvas {
+  filter: contrast(1.12) saturate(1.14) brightness(1.12);
+  /* Only the very bottom edge fades so the officer meets the ground plane;
+     the body itself stays fully opaque. */
+  mask-image: linear-gradient(to bottom, black 0%, black 96%, transparent 100%);
+  -webkit-mask-image: linear-gradient(to bottom, black 0%, black 96%, transparent 100%);
+}
+
+.status-dot {
+  display: inline-block;
+  width: 0.45rem;
+  height: 0.45rem;
+  border-radius: 999px;
+  background: var(--duty-gold);
+  box-shadow: 0 0 0 4px color-mix(in oklab, var(--duty-gold) 14%, transparent);
+}
+
+.bg-brass {
+  background-image: var(--gradient-brass);
+  color: oklch(0.17 0.03 258);
+  transition: all 0.2s ease-in-out;
+}
+.bg-brass:hover:not(:disabled) {
+  filter: brightness(1.15);
+  box-shadow: 0 0 15px color-mix(in oklab, var(--duty-gold) 50%, transparent);
+  transform: translateY(-1px);
+}
+
+.text-gold-soft { color: var(--duty-gold-soft); }
+.text-gold { color: var(--duty-gold); }
+.border-duty { border-color: var(--duty-border); }
+
+/* Old-form inputs restyled onto the navy terminal theme.
+   Structure/behaviour unchanged — only the skin maps to the theme. */
+.duty-field {
+  width: 100%;
+  border-radius: 0.65rem;
+  border: 1px solid var(--duty-border);
+  background: color-mix(in oklab, oklch(1 0 0) 5%, transparent);
+  color: oklch(0.96 0.01 90);
+  padding: 0.7rem 1rem;
+  font-size: 0.875rem;
+  outline: none;
+  transition: border-color 150ms ease, box-shadow 150ms ease;
+}
+.duty-field::placeholder { color: oklch(0.96 0.01 90 / 38%); }
+.duty-field:focus {
+  border-color: color-mix(in oklab, var(--duty-gold) 80%, transparent);
+  box-shadow: 0 0 0 4px color-mix(in oklab, var(--duty-gold) 25%, transparent),
+              inset 0 1px 3px color-mix(in oklab, var(--duty-gold) 10%, transparent);
+  background: color-mix(in oklab, oklch(1 0 0) 8%, transparent);
+}
+
+@keyframes brass-shimmer {
+  0% { background-position: -180% 0; }
+  100% { background-position: 180% 0; }
+}
+.brass-shimmer {
+  background-image: var(--gradient-brass);
+  background-size: 220% 100%;
+  animation: brass-shimmer 6s linear infinite;
+}
+
+/* ============================================================
+   Premium motion & gold-accent layer (matches duty-terminal)
+   ============================================================ */
+html {
+  scroll-behavior: smooth;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  html { scroll-behavior: auto; }
+}
+
+/* Staggered rise-in for panel/form entrances */
+@keyframes rise-in {
+  from { opacity: 0; transform: translateY(18px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+.animate-rise-in {
+  animation: rise-in 0.7s cubic-bezier(0.22, 1, 0.36, 1) both;
+}
+.rise-d1 { animation-delay: 0.08s; }
+.rise-d2 { animation-delay: 0.16s; }
+.rise-d3 { animation-delay: 0.24s; }
+.rise-d4 { animation-delay: 0.32s; }
+.rise-d5 { animation-delay: 0.40s; }
+
+/* Gold shine sweep for primary buttons */
+@keyframes shine-sweep {
+  0%   { transform: translateX(-120%) skewX(-18deg); }
+  100% { transform: translateX(240%)  skewX(-18deg); }
+}
+.shine-host { position: relative; overflow: hidden; }
+.shine-host::after {
+  content: "";
+  position: absolute;
+  top: 0; bottom: 0;
+  left: 0;
+  width: 34%;
+  background: linear-gradient(90deg, transparent, rgba(255,255,255,0.5), transparent);
+  transform: translateX(-120%) skewX(-18deg);
+  pointer-events: none;
+}
+.shine-host:hover::after { animation: shine-sweep 0.9s cubic-bezier(0.22, 1, 0.36, 1); }
+
+/* Gold hairline separator */
+.hairline-gold {
+  height: 1px;
+  background-image: linear-gradient(
+    90deg,
+    transparent,
+    var(--duty-gold) 18%,
+    var(--duty-gold-soft) 50%,
+    var(--duty-gold) 82%,
+    transparent
+  );
+  opacity: 0.55;
+}
+
+/* Gold focus ring, app-wide */
+:focus-visible {
+  outline: 2px solid color-mix(in oklab, var(--duty-gold) 65%, transparent);
+  outline-offset: 2px;
+  border-radius: 4px;
+}
+
+/* Dashboard cards: premium gold top-hairline on hover */
+.tactical-card {
+  position: relative;
+}
+.tactical-card::before {
+  content: "";
+  position: absolute;
+  top: 0; left: 10%;
+  right: 10%;
+  height: 1.5px;
+  border-radius: 999px;
+  background: linear-gradient(90deg, transparent, var(--duty-gold), transparent);
+  opacity: 0;
+  transition: opacity 0.45s cubic-bezier(0.22, 1, 0.36, 1);
+  pointer-events: none;
+  z-index: 1;
+}
+.tactical-card:hover::before {
+  opacity: 0.9;
+}
+.tactical-card:hover {
+  box-shadow: 0 14px 34px -14px oklch(0.78 0.128 84 / 28%), 0 4px 14px -6px rgba(15, 23, 42, 0.08);
+  transform: translateY(-1px);
+  transition: box-shadow 0.45s cubic-bezier(0.22, 1, 0.36, 1), transform 0.45s cubic-bezier(0.22, 1, 0.36, 1);
+}
+
+/* Content canvas: faint navy-gold wash so pages echo the terminal */
+.duty-page {
+  background:
+    radial-gradient(110% 70% at 50% -20%, color-mix(in oklab, var(--duty-gold) 4%, transparent) 0%, transparent 55%),
+    linear-gradient(180deg, #f6f8fc 0%, #eef2f9 100%);
+}
+
+/* Smooth micro-interaction defaults */
+button, a, input, [role="button"] {
+  transition-timing-function: cubic-bezier(0.22, 1, 0.36, 1);
 }

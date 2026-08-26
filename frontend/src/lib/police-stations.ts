@@ -26,26 +26,24 @@ let cache: PoliceStation[] | null = null;
 
 export async function loadPoliceStations(): Promise<PoliceStation[]> {
   if (cache) return cache;
-  
-  let fc: PoliceStationsFC;
+
   try {
-    // Try fetching local static file first (highly optimized and works offline/locally)
+    // Local static file (served alongside the SPA)
     const res = await fetch("/data/police_stations.geojson");
     if (!res.ok) throw new Error(`HTTP status ${res.status}`);
-    fc = (await res.json()) as PoliceStationsFC;
+    const fc = (await res.json()) as PoliceStationsFC;
+    cache = fc.features.map((f) => ({
+      id: f.properties.station_id,
+      name: f.properties.station_name || f.properties.pol_sta_name || "PS",
+      code: f.properties.kgis_ps_code || "",
+      lng: f.geometry.coordinates[0],
+      lat: f.geometry.coordinates[1],
+    }));
   } catch (err) {
-    console.warn("[police-stations] Local static fetch failed, trying fallback...", err);
-    const res = await fetch("https://psnbuybmaugobwsdtecx.supabase.co/storage/v1/object/public/data/police_stations.geojson");
-    fc = (await res.json()) as PoliceStationsFC;
+    console.warn("[police-stations] Static geojson unavailable, continuing without station markers.", err);
+    cache = [];
   }
 
-  cache = fc.features.map((f) => ({
-    id: f.properties.station_id,
-    name: f.properties.station_name || f.properties.pol_sta_name || "PS",
-    code: f.properties.kgis_ps_code || "",
-    lng: f.geometry.coordinates[0],
-    lat: f.geometry.coordinates[1],
-  }));
   return cache;
 }
 

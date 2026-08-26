@@ -62,9 +62,58 @@ I can answer questions about:
 Try one of the suggested prompts below, or type your own query.`,
 };
 
+// A simple Typewriter component to simulate real-time AI response streaming
+const TypewriterText = ({ text, onComplete }: { text?: string, onComplete?: () => void }) => {
+  const safeText = text || "";
+  const [displayedText, setDisplayedText] = useState("");
+  const containerRef = useRef<HTMLDivElement>(null);
+  
+  // Use a ref to store the latest onComplete to avoid infinite loops from inline functions
+  const onCompleteRef = useRef(onComplete);
+  useEffect(() => {
+    onCompleteRef.current = onComplete;
+  }, [onComplete]);
+  
+  useEffect(() => {
+    let index = 0;
+    setDisplayedText(""); 
+    
+    if (!safeText) {
+      onCompleteRef.current?.();
+      return;
+    }
+
+    const delay = Math.max(5, Math.min(20, 2000 / safeText.length));
+    
+    const timer = setInterval(() => {
+      index += 3;
+      if (index >= safeText.length) {
+        setDisplayedText(safeText);
+        clearInterval(timer);
+        onCompleteRef.current?.();
+      } else {
+        setDisplayedText(safeText.slice(0, index));
+      }
+      
+      // Auto-scroll as it types
+      containerRef.current?.scrollIntoView({ behavior: "smooth", block: "end" });
+    }, delay);
+    
+    return () => clearInterval(timer);
+  }, [safeText]);
+
+  return (
+    <div ref={containerRef}>
+      <ReactMarkdown remarkPlugins={[remarkGfm]}>{displayedText}</ReactMarkdown>
+    </div>
+  );
+};
+
 export default function AICrimeAssistant() {
   const { user } = useAuth();
   const filters = useFilters();
+  const [typingComplete, setTypingComplete] = useState<Record<string, boolean>>({});
+  
   const [activeSessionId, setActiveSessionId] = useState<string>(() => {
     return localStorage.getItem("ksp_active_session_id") || "s1";
   });
@@ -853,7 +902,14 @@ export default function AICrimeAssistant() {
                       </div>
                     ) : (
                       <div className="prose prose-sm max-w-none [&_table]:text-xs [&_table]:w-full [&_th]:bg-slate-50 [&_th]:px-2 [&_th]:py-1.5 [&_td]:px-2 [&_td]:py-1.5 [&_tr]:border-b [&_tr]:border-slate-100 [&_p]:my-1.5 [&_h2]:text-base [&_h2]:font-bold [&_h2]:text-slate-900 [&_h3]:text-sm [&_h3]:font-semibold [&_strong]:text-[#008DDA]">
-                        <ReactMarkdown remarkPlugins={[remarkGfm]}>{m.content}</ReactMarkdown>
+                        {!isUser && m.id === messages[messages.length - 1].id && m.id !== 'init' ? (
+                          <TypewriterText 
+                            text={m.content} 
+                            onComplete={() => setTypingComplete(prev => ({ ...prev, [m.id]: true }))} 
+                          />
+                        ) : (
+                          <ReactMarkdown remarkPlugins={[remarkGfm]}>{m.content || ""}</ReactMarkdown>
+                        )}
                       </div>
                     )}
                   </div>
