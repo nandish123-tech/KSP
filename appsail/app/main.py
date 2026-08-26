@@ -9,10 +9,9 @@ from app.routes import auth, dashboard, chat, analytics, network, reports, fir_a
 app = FastAPI(title=settings.PROJECT_NAME, version="1.0.0")
 
 
-cors_origins = os.environ.get("CORS_ORIGINS", "http://localhost:3000").split(",")
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=cors_origins,
+    allow_origins=["*"],
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
