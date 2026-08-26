@@ -1,0 +1,69 @@
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500;700&display=swap');
+
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  body {
+    @apply bg-ksp-slate-50 text-ksp-slate-900 font-sans antialiased selection:bg-ksp-blue-100;
+  }
+}
+
+@layer components {
+  /* Tactical Command UI Cards */
+  .tactical-card {
+    @apply bg-white border border-ksp-slate-200/80 rounded-xl shadow-panel transition-all duration-200 hover:shadow-md;
+  }
+  
+  .tactical-card-dark {
+    @apply bg-ksp-navy-DEFAULT border border-ksp-slate-800 rounded-xl shadow-xl transition-all duration-200;
+  }
+
+  /* Structural Status Badges */
+  .badge-base {
+    @apply text-[11px] font-mono font-bold tracking-wider uppercase px-2.5 py-1 rounded border;
+  }
+
+  .badge-critical {
+    @apply badge-base bg-red-50 border-red-200 text-ksp-status-rose shadow-glow-red;
+  }
+
+  .badge-warning {
+    @apply badge-base bg-amber-50 border-amber-200 text-ksp-status-amber;
+  }
+
+  .badge-secure {
+    @apply badge-base bg-emerald-50 border-emerald-200 text-ksp-status-emerald;
+  }
+
+  /* Form Element Inputs */
+  .command-input {
+    @apply w-full px-3 py-2 text-sm bg-white border border-ksp-slate-200 rounded-lg shadow-sm font-sans placeholder-ksp-slate-400 transition-all focus:outline-none focus:border-ksp-blue-accent focus:ring-1 focus:ring-ksp-blue-accent;
+  }
+
+  /* High-Tech Grid Accent Pattern */
+  .tech-grid {
+    background-size: 24px 24px;
+    background-image: linear-gradient(to right, rgba(148, 163, 184, 0.05) 1px, transparent 1px),
+                      linear-gradient(to bottom, rgba(148, 163, 184, 0.05) 1px, transparent 1px);
+  }
+  
+  .tech-grid-dark {
+    background-size: 32px 32px;
+    background-image: linear-gradient(to right, rgba(30, 62, 98, 0.15) 1px, transparent 1px),
+                      linear-gradient(to bottom, rgba(30, 62, 98, 0.15) 1px, transparent 1px);
+  }
+
+  /* Custom Clean Enterprise Scrollbar */
+  ::-webkit-scrollbar {
+    width: 6px;
+    height: 6px;
+  }
+  ::-webkit-scrollbar-track {
+    @apply bg-transparent;
+  }
+  ::-webkit-scrollbar-thumb {
+    @apply bg-slate-300 rounded-full hover:bg-slate-400;
+  }
+}
