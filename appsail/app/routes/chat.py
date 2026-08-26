@@ -17,8 +17,17 @@ def get_gemini():
     return _gemini_service
 
 
+from fastapi import Request
+import json
+
 @router.post("/query", response_model=ChatMessage)
-async def process_chat_query(message: ChatMessage):
+async def process_chat_query(request: Request):
+    try:
+        body_bytes = await request.body()
+        data = json.loads(body_bytes) if body_bytes else {}
+        message = ChatMessage(**data)
+    except Exception as e:
+        raise HTTPException(status_code=400, detail="Invalid request body")
 
     try:
         gemini = get_gemini()

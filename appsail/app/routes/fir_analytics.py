@@ -43,12 +43,24 @@ def _rows_to_dicts(rows) -> List[Dict[str, Any]]:
     return [dict(r) for r in rows]
 
 
+from fastapi import Request
+import json
+
 @router.post("/rpc/{fn_name}")
-async def dispatch_rpc(fn_name: str, params: Dict[str, Any] = Body(default_factory=dict)):
+async def dispatch_rpc(fn_name: str, request: Request):
     """
     Generic Supabase-compatible RPC bridge.
     Example body: {"p_years": [2023, 2024], "p_limit": 25}
     """
+    try:
+        body_bytes = await request.body()
+        params = json.loads(body_bytes) if body_bytes else {}
+    except Exception:
+        params = {}
+
+    return await _execute_rpc(fn_name, params)
+
+async def _execute_rpc(fn_name: str, params: Dict[str, Any]):
     if fn_name not in RPC_FUNCTIONS:
         raise HTTPException(status_code=404, detail=f"Unknown analytics function '{fn_name}'")
 
@@ -76,7 +88,7 @@ async def dispatch_rpc(fn_name: str, params: Dict[str, Any] = Body(default_facto
         except Exception as e:
             import traceback
             traceback.print_exc()
-            raise HTTPException(status_code=500, detail=f"{fn_name}: {e}")
+            raise HTTPException(status_code=500, detail=str(e))
 
     result = _rows_to_dicts(rows)
 

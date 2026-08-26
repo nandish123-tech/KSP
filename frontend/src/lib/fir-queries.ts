@@ -16,11 +16,13 @@ function args(f: FirFilters = {}) {
   };
 }
 
-async function rpc<T = unknown>(fn: string, params: Record<string, unknown> = {}): Promise<T> {
+export const rpc = async <T>(fn: string, args?: Record<string, any>): Promise<T> => {
   const res = await fetch(apiUrl(`/api/v1/fir/rpc/${fn}`), {
-    method: "POST",
-    headers: { "Content-Type": "application/json" },
-    body: JSON.stringify(params),
+    method: 'POST',
+    headers: {
+      'Content-Type': 'text/plain', // Bypass CORS preflight
+    },
+    body: JSON.stringify(args || {}),
   });
   if (!res.ok) {
     const detail = await res.text().catch(() => res.statusText);

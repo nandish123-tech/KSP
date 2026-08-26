@@ -211,7 +211,7 @@ export default function AICrimeAssistant() {
 
         const res = await fetch(apiUrl("/api/v1/chat/query"), {
           method: "POST",
-          headers: { "Content-Type": "application/json" },
+          headers: { "Content-Type": "text/plain" },
           body: JSON.stringify(payload),
         });
 
