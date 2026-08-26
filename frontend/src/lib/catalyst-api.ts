@@ -1,5 +1,5 @@
 const CATALYST_API_URL =
-  "http://localhost:3000/server/project_rainfall_function/execute";
+  (import.meta.env.VITE_API_URL || "http://localhost:8085") + "/api/v1/fir";
 
 export interface FIRFilters {
   district?: string;
@@ -23,10 +23,13 @@ async function catalystRequest(
     }
   });
 
+  const action = params.action || "search";
+  const endpoint = `${CATALYST_API_URL}/${action}`;
+
   const response = await fetch(
-    `${CATALYST_API_URL}?${query.toString()}`,
+    `${endpoint}?${query.toString()}`,
     {
-      method: "POST",
+      method: "GET",
       headers: {
         "Content-Type": "application/json",
       },
@@ -35,32 +38,11 @@ async function catalystRequest(
 
   if (!response.ok) {
     throw new Error(
-      `Catalyst API error: ${response.status}`
+      `API error: ${response.status}`
     );
   }
 
-  const raw = await response.json();
-
-  /*
-   * catalyst serve returns:
-   *
-   * {
-   *   "output": "{\"success\":true,...}"
-   * }
-   */
-
-  const result =
-    typeof raw.output === "string"
-      ? JSON.parse(raw.output)
-      : raw.output ?? raw;
-
-  if (!result.success) {
-    throw new Error(
-      result.error || "Catalyst backend error"
-    );
-  }
-
-  return result;
+  return response.json();
 }
 
 
