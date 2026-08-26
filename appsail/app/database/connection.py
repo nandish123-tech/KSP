@@ -12,9 +12,9 @@ class DatabaseManager:
                 self.pool = await asyncpg.create_pool(
                     dsn=settings.DATABASE_URL,
                     min_size=2,            # Keeps hot connections open to minimize connection overhead
-                    max_size=10,           # Scale boundary for parallel inquiries
-                    command_timeout=15.0,  # Fails gracefully if AWS doesn't respond in 15 seconds
-                    timeout=30.0           # Connection allocation timeout threshold
+                    max_size=25,           # Increased to 25 to handle parallel dashboard queries
+                    command_timeout=25.0,  # Fails gracefully if AWS doesn't respond
+                    timeout=45.0           # Connection allocation timeout threshold
                 )
                 print("AWS RDS Connection Pool established successfully.")
             except Exception as e:
