@@ -17,8 +17,8 @@ type District = { district: string; lat: number; lng: number; fir_count: number;
 type Beat = { beat: string; unit_name: string; district: string; lat: number; lng: number; fir_count: number };
 
 const TILES = {
-  dark: "https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png",
-  light: "https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}{r}.png",
+  dark: "https://server.arcgisonline.com/ArcGIS/rest/services/Canvas/World_Dark_Gray_Base/MapServer/tile/{z}/{y}/{x}",
+  light: "https://server.arcgisonline.com/ArcGIS/rest/services/Canvas/World_Light_Gray_Base/MapServer/tile/{z}/{y}/{x}",
   sat: "https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}",
 };
 
@@ -120,7 +120,7 @@ export default function CrimeHotspots() {
     if (!L || !grp || !ready) return;
     grp.clearLayers();
 
-    const list = (districts.data ?? []) as District[];
+    const list = ((districts.data ?? []) as District[]).filter(d => d.lat != null && d.lng != null);
     const wobble = (seed: number) => (pulse ? 1 + Math.sin((tick + seed) / 1.2) * 0.08 : 1);
 
     if (layer === "heat") {
@@ -156,7 +156,7 @@ export default function CrimeHotspots() {
         }).bindPopup(popupHtml(d, true)).addTo(grp);
       });
     } else if (layer === "beats") {
-      const bl = (beats.data ?? []) as Beat[];
+      const bl = ((beats.data ?? []) as Beat[]).filter(b => b.lat != null && b.lng != null);
       bl.slice(0, 500).forEach((b) => {
         L.circleMarker([b.lat, b.lng], {
           radius: 2 + Math.log2(b.fir_count + 1), color: "#a3e635", fillColor: "#a3e635", fillOpacity: 0.7, weight: 0,

@@ -67,7 +67,7 @@ async def get_district_cases():
             SELECT
                 "District_Name" AS district,
                 COUNT(*) AS cases
-            FROM "fir_details"
+            FROM "fir_details_2023"
             GROUP BY "District_Name"
             ORDER BY cases DESC;
         """)
@@ -94,7 +94,7 @@ async def district_stations(district: str):
             SELECT
                 "UnitName" AS station,
                 COUNT(*) AS cases
-            FROM "fir_details"
+            FROM "fir_details_2023"
             WHERE "District_Name" = $1
             GROUP BY "UnitName"
             ORDER BY cases DESC;

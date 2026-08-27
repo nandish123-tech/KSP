@@ -1,25 +1,28 @@
 import asyncpg
+import asyncio
 from contextlib import asynccontextmanager
 from app.config.settings import settings
 
 class DatabaseManager:
     def __init__(self):
         self.pool = None
+        self._lock = asyncio.Lock()
 
     async def initialize_pool(self):
-        if not self.pool:
-            try:
-                self.pool = await asyncpg.create_pool(
-                    dsn=settings.DATABASE_URL,
-                    min_size=2,            # Keeps hot connections open to minimize connection overhead
-                    max_size=10,           # Scale boundary for parallel inquiries
-                    command_timeout=15.0,  # Fails gracefully if AWS doesn't respond in 15 seconds
-                    timeout=30.0           # Connection allocation timeout threshold
-                )
-                print("AWS RDS Connection Pool established successfully.")
-            except Exception as e:
-                print(f"Failed to connect to AWS RDS: {str(e)}")
-                raise e
+        async with self._lock:
+            if not self.pool:
+                try:
+                    self.pool = await asyncpg.create_pool(
+                        dsn=settings.DATABASE_URL,
+                        min_size=2,            
+                        max_size=20,           
+                        command_timeout=60.0,  
+                        timeout=60.0           
+                    )
+                    print("AWS RDS Connection Pool established successfully.")
+                except Exception as e:
+                    print(f"Failed to connect to AWS RDS: {str(e)}")
+                    raise e
 
     async def close_pool(self):
         if self.pool:

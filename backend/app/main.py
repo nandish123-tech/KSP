@@ -1,7 +1,7 @@
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from app.config.settings import settings
-from app.routes import auth, dashboard, chat, analytics, network, reports
+from app.routes import auth, dashboard, chat, analytics, network, reports, fir
 
 app = FastAPI(title=settings.PROJECT_NAME, version="1.0.0")
 
@@ -19,6 +19,7 @@ app.include_router(chat.router, prefix=f"{settings.API_V1_STR}/chat", tags=["AI 
 app.include_router(analytics.router, prefix=f"{settings.API_V1_STR}/analytics", tags=["Analytics"])
 app.include_router(network.router, prefix=f"{settings.API_V1_STR}/network", tags=["Network Graph"])
 app.include_router(reports.router, prefix=f"{settings.API_V1_STR}/reports", tags=["Reports"])
+app.include_router(fir.router, prefix=f"{settings.API_V1_STR}/fir", tags=["FIR Data"])
 
 @app.get("/")
 async def root():
