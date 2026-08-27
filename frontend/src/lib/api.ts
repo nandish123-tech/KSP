@@ -1,5 +1,5 @@
 const API_BASE_URL = (
-  import.meta.env.VITE_API_URL ?? import.meta.env.VITE_API_BASE_URL ?? (import.meta.env.DEV ? 'http://localhost:8085' : '')
+  import.meta.env.VITE_API_URL ?? import.meta.env.VITE_API_BASE_URL ?? (import.meta.env.DEV ? 'https://ksp-backend-1blb.onrender.com' : '')
 ).replace(/\/$/, '');
 
 export const apiUrl = (path: string) => {
