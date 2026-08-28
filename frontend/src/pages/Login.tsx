@@ -361,7 +361,7 @@ export default function Login() {
                 <span className="text-slate-600">·</span>
                 <div className="flex items-center gap-1 text-sky-300">
                   <span className="h-1.5 w-1.5 rounded-full bg-sky-300" />
-                  1,674,734 FIRs Active
+                  426,496 FIRs Active
                 </div>
               </div>
             </div>
