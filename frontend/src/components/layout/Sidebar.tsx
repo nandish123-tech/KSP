@@ -14,11 +14,13 @@ import {
   Settings,
   LogOut,
   ChevronRight,
+  PhoneCall,
 } from "lucide-react";
 import emblemImage from "../../assets/police-emblem.png";
 
 const menuItems = [
   { name: "Dashboard", path: "/", icon: LayoutDashboard },
+  { name: "Emergency Response", path: "/emergency", icon: PhoneCall },
   { name: "AI Crime Assistant", path: "/assistant", icon: MessageSquare },
   { name: "Crime Analytics", path: "/analytics", icon: BarChart3 },
   { name: "FIR Details Tree", path: "/tree", icon: FolderTree },

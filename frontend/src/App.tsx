@@ -6,6 +6,7 @@ import Login from './pages/Login';
 import Sidebar from './components/layout/Sidebar';
 import TopNav from './components/layout/TopNav';
 import Dashboard from './pages/Dashboard';
+import EmergencyResponse from './pages/EmergencyResponse';
 import AICrimeAssistant from './pages/AICrimeAssistant';
 import CrimeAnalytics from './pages/CrimeAnalytics';
 import CrimeHotspots from './pages/CrimeHotspots';
@@ -47,6 +48,7 @@ const App: React.FC = () => {
         <Routes>
           <Route path="/login" element={<Login />} />
           <Route path="/" element={<ProtectedLayout><Dashboard /></ProtectedLayout>} />
+          <Route path="/emergency" element={<ProtectedLayout><EmergencyResponse /></ProtectedLayout>} />
           <Route path="/assistant" element={<ProtectedLayout><AICrimeAssistant /></ProtectedLayout>} />
           <Route path="/analytics" element={<ProtectedLayout><CrimeAnalytics /></ProtectedLayout>} />
           <Route path="/tree" element={<ProtectedLayout><FolderTree /></ProtectedLayout>} />
